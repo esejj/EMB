@@ -1,0 +1,59 @@
+# It's a last version!
+
+options: # W przyszlosci plik konfiguracyjny :D
+
+	amount_wand: 1 # def. 1 (ilosc przedmiotu)
+	item_wand: wooden axe # def. wooden axe (Drewniana siekiera)
+	name_wand: wooden axe # def. nazwa przedmiotu z sekcji "item_wand"
+	
+command /easymanageblocks [<text>]:
+	description: Komenda informacyjna o skrypcie EMB.
+	aliases: /emb
+	trigger:
+		if argument isn't set:
+			send "&8» &6/wand &7- &cprzyznaje graczowi przedmiot, ktory moze zarzadzac blokami." to the player
+		if argument is set:
+			send "&8» &cNiepoprawny argument!" to the player
+			send "&8» &6Poprawne argumenty&8: &7author" to the player
+		if argument is "author":
+			send "Autorem skryptu jest Kacper Koźbiał" to the player
+command /wand [<text>]:
+	description: przyznaje graczowi przedmiot, ktory moze zarzadzac blokami.
+	aliases: /wd
+	trigger:
+		if argument isn't set:
+			if player has permission "{@perm_wand}":
+				add {@amount_wand} of {@item_wand} named "{@name_wand}" to the player
+				send "&8» &6Przyznano przedmiot do zarzadzania blokami" to the player
+			else:
+				send "&8» &cTa komenda jest zablokowana dla graczy" to the player
+		else:
+			send "&8» &dBrak umiejetnosci poslugiwania sie komendami&7... &6Polecam! :D" to the player
+command /setblock [<block>]:
+	description: ustawia bloki pomiedzy zaznaczonymi lokalizacjami.
+	aliases: /set
+	trigger:
+		if player has permission "{@perm_setblock}":
+			if argument is set:
+				loop blocks between {location1::%player%} and {location2::%player%}:
+					set loop-block to argument 1
+				send "&8» &6Pomyslnie ustawiono bloki" to the player
+			else:
+				send "&8» &cNie podales ID bloku" to the player
+		else:
+			send "&8» &4Brak uprawnien" to the player
+on left click with {@item_wand}:
+	if name of player's tool is "{@name_wand}":
+		event-block isn't air:
+			if {location1::%player%} isn't set:
+				if {location2::%player%} isn't set:
+					set {location1::%player%} to location of event-block
+				else if {location2::%player%} is set:
+					set {location1::%player%} to location of event-block
+					clear {location2::%player%}
+			else if {location1::%player%} is set:
+				if {location2::%player%} isn't set:
+					set {location2::%player%} to location of event-block
+				else if {location2::%player%} is set:
+					set {location1::%player%} to location of event-block
+					clear {location2::%player%}
