@@ -5,6 +5,14 @@ options: # W przyszlosci plik konfiguracyjny :D
 	amount_wand: 1 # def. 1 (ilosc przedmiotu)
 	item_wand: wooden axe # def. wooden axe (Drewniana siekiera)
 	name_wand: wooden axe # def. nazwa przedmiotu z sekcji "item_wand"
+
+	# Uprawnienie do komendy ; /wand ;
+	perm_wand: emb.wand.command
+
+	# SetBlock
+
+	# Uprawnienie do komendy ; /setblock ;
+	perm_setblock: emb.setblock.command
 	
 command /easymanageblocks [<text>]:
 	description: Komenda informacyjna o skrypcie EMB.
