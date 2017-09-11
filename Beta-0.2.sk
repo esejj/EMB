@@ -294,12 +294,20 @@ on quit:
 		clear {emb::undo::location::%player%::%loop-number%::*}
 		clear {emb::undo::komenda::%player%::%loop-number%}
 on left click with {@item_wand}:
-	if name of player's tool is "{@name_wand}":
-		event-block isn't air:
-			set {location1::%player%} to event-block
-			send "1"
+	if player has permission "{@use_wand}":
+		if name of player's tool is "{@name_wand}":
+			event-block isn't air:
+				set {location1::%player%} to event-block
+				send "&8» &3Ustawiono lokalizacje &71&8." to the player
+	else:
+		if name of player's tool is "{@name_wand}":
+			set name of player's tool to "%raw name of player's tool%"
 on right click with {@item_wand}:
-	if name of player's tool is "{@name_wand}":
-		event-block isn't air:
-			set {location2::%player%} to event-block
-			send "2"
+	if player has permission "{@use_wand}":
+		if name of player's tool is "{@name_wand}":
+			event-block isn't air:
+				set {location2::%player%} to event-block
+				send "&8» &3Ustawiono lokalizacje &72&8." to the player
+	else:
+		if name of player's tool is "{@name_wand}":
+			set name of player's tool to "%raw name of player's tool%"
