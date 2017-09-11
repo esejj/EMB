@@ -13,7 +13,7 @@
 - /cyl <blok> <radius> <gleboskosc>
 - /center <blok>
 ```
-###### Beta 0.2 ~ Edit v0.1 by kaol48s
+###### Beta 0.2 ~ Edit v0.1 by [kaol48s](https://skript.pl/profil/7405-kaol48s)
 ---
 ## Todo
 ---
