@@ -1,0 +1,305 @@
+# It's a last version!
+options: # W przyszlosci plik konfiguracyjny :D
+	amount_wand: 1 # def. 1 (ilosc przedmiotu)
+	item_wand: wooden shovel # def. wooden axe (Drewniana siekiera)
+	name_wand: wooden axe # def. nazwa przedmiotu z sekcji "item_wand"
+
+	# Uprawnienia do komend
+	# perm_<komenda>: <uprawnienie>
+	perm_wand: emb.command.wand
+	perm_cyl: emb.command.cyl
+	perm_hcyl: emb.command.hcyl
+	perm_sphere: emb.command.sphere
+	perm_hsphere: emb.command.hsphere
+	perm_center: emb.command.center
+	perm_undo: emb.command.undo
+command /easymanageblocks [<text>]:
+	description: Komenda informacyjna o skrypcie EMB.
+	aliases: /emb
+	trigger:
+		if argument isn't set:
+			send "&8» &6/wand &7- &cprzyznaje graczowi przedmiot, ktory moze zarzadzac blokami." to the player
+			send "&8» &6/cyl <blok> <rozmiar> <glebokosc> &7- &cpozwala na tworzenie cylindra wokolo gracza." to the player
+			send "&8» &6/hcyl <blok> <rozmiar> <glebokosc> &7- &cpozwala na tworzenie pustego cylindra wokolo gracza." to the player
+			send "&8» &6/sphere <blok> <rozmiar> &7- &cpozwala na tworzenie kuli wokolo gracza." to the player
+			send "&8» &6/hsphere <blok> <rozmiar> &7- &cpozwala na tworzenie pustej kuli wokolo gracza." to the player
+			send "&8» &6/center <blok> &7- &cpozwala na wycentrowanie bloku pomiedzy 2 lokalizacjami." to the player
+			send "&8» &6/undo <ilosc cofniec> &7- &cpozwala na cofniecie do 10 ostatnich edycji terenu." to the player
+			send "&8» &6/history <gracz> &7- &cpozwala na sprawdzenie histori edycji terenu gracza." to the player
+			stop
+		if argument is not "author":
+			send "&8» &cNiepoprawny argument!" to the player
+			send "&8» &6Poprawne argumenty&8: &7author" to the player
+		if argument is "author":
+			send "Autorem skryptu jest Kacper Koźbiał" to the player
+command /wand [<text>]:
+	description: przyznaje graczowi przedmiot, ktory moze zarzadzac blokami.
+	aliases: /wd
+	trigger:
+		if argument isn't set:
+			if player has permission "{@perm_wand}":
+				add {@amount_wand} of {@item_wand} named "{@name_wand}" to the player
+				send "&8۠&6Przyznano przedmiot do zarzadzania blokami" to the player
+			else:
+				send "&8۠&cTa komenda jest zablokowana dla graczy" to the player
+		else:
+			send "&8۠&dBrak umiejetnosci poslugiwania sie komendami&7... &6Polecam! :D" to the player
+command /setblock [<itemtype>]:
+	description: ustawia bloki pomiedzy zaznaczonymi lokalizacjami.
+	aliases: /set
+	trigger:
+		if player has permission "{@perm_setblock}":
+			if argument is set:
+				loop 10-1 times:
+					set {emb::undo::location::%player%::%11-loop-number%::*} to {emb::undo::location::%player%::%10-loop-number%::*} 
+					set {emb::undo::block::%player%::%11-loop-number%::*} to {emb::undo::block::%player%::%10-loop-number%::*} 
+					set {emb::undo::komenda::%player%::%11-loop-number%} to {emb::undo::komenda::%player%::%10-loop-number%}
+				clear {emb::undo::location::%player%::1::*}
+				clear {emb::undo::block::%player%::1::*}
+				set {emb::undo::komenda::%player%::1} to "/setblock"
+				loop blocks between {location1::%player%} and {location2::%player%}:
+					add 1 to {_}
+					set {emb::undo::location::%player%::1::%{_}%} to location of loop-block
+					set {emb::undo::block::%player%::1::%{_}%} to type of loop-block
+				wait 1 tick
+				loop blocks between {location1::%player%} and {location2::%player%}:
+					set loop-block to argument-1
+				send "&8۠&6Pomyslnie ustawiono bloki" to the player
+			else:
+				send "&8۠&cNie podales ID bloku" to the player
+		else:
+			send "&8۠&4Brak uprawnien" to the player
+command /center [<itemtype>]:
+	description: pozwala na wycentrowanie bloku pomiedzy 2 lokalizacjami.
+	trigger:
+		if player has permission "{@perm_center}":
+			if argument is set:
+				loop 10-1 times:
+					set {emb::undo::location::%player%::%11-loop-number%::*} to {emb::undo::location::%player%::%10-loop-number%::*} 
+					set {emb::undo::block::%player%::%11-loop-number%::*} to {emb::undo::block::%player%::%10-loop-number%::*} 
+					set {emb::undo::komenda::%player%::%11-loop-number%} to {emb::undo::komenda::%player%::%10-loop-number%}
+				clear {emb::undo::location::%player%::1::*}
+				clear {emb::undo::block::%player%::1::*}
+				set {emb::undo::komenda::%player%::1} to "/center"
+				set {_x} to x-coord of {location1::%player%}/2
+				set {_y} to y-coord of {location1::%player%}/2
+				set {_z} to z-coord of {location1::%player%}/2
+				add x-coord of {location2::%player%}/2 to {_x}
+				add y-coord of {location2::%player%}/2 to {_y} 
+				add z-coord of {location2::%player%}/2 to {_z} 
+				if "%{_x}%" contains "0.5":
+					remove 0.5 from {_x}
+				if "%{_y}%" contains "0.5":
+					remove 0.5 from {_y}
+				if "%{_z}%" contains "0.5":
+					remove 0.5 from {_z}
+				send "%{_x}%, %{_y}%, %{_z}%"
+				set {_loc} to location at {_x}, {_y}, {_z} 
+				set {emb::undo::location::%player%::1::1} to {_loc}
+				set {emb::undo::block::%player%::1::1} to type of block at {_loc}
+				set block at {_loc} to argument 1
+						
+				send "&8۠&6Pomyslnie wycentrowano bloki" to the player
+			else:
+				send "&8۠&cNie podales ID bloku" to the player
+		else:
+			send "&8» &4Brak uprawnien." to the player
+command /history [<player>]:
+	description: pozwala na sprawdzenie historii edycji terenu gracza.
+	trigger:
+		set {_p} to player-argument
+		if argument 1 is set:
+			set {_p} to argument 1
+		loop 10 times:
+			if {emb::undo::block::%{_p}%::%loop-number%::*} is set:
+				send "&c%loop-number%. &6[%size of {emb::undo::block::%{_p}%::%loop-number%::*}% blokow] [%{emb::undo::komenda::%player%::%loop-number%}%]"
+			if {emb::undo::block::%{_p}%::%loop-number%::*} is not set:
+				send "&c%loop-number%. &6[0 blokow]"
+command /sphere [<itemtype>] [<integer>]:
+	description: pozwala na tworzenie kuli wokolo gracza.
+	trigger:
+		if player has permission "{@perm_sphere}":
+			if argument 1 is set:
+				if argument 2 is set:
+					loop 10-1 times:
+						set {emb::undo::location::%player%::%11-loop-number%::*} to {emb::undo::location::%player%::%10-loop-number%::*} 
+						set {emb::undo::block::%player%::%11-loop-number%::*} to {emb::undo::block::%player%::%10-loop-number%::*} 
+						set {emb::undo::komenda::%player%::%11-loop-number%} to {emb::undo::komenda::%player%::%10-loop-number%}
+					clear {emb::undo::location::%player%::1::*}
+					clear {emb::undo::block::%player%::1::*}
+					set {emb::undo::komenda::%player%::1} to "/sphere"
+					loop blocks in radius argument 2+0.5 around block at location of player:
+						add 1 to {_}
+						set {emb::undo::location::%player%::1::%{_}%} to location of loop-block
+						set {emb::undo::block::%player%::1::%{_}%} to type of loop-block
+						set loop-block to argument-1 
+					send "&8۠ &6Pomyslnie ustawiono [%size of {emb::undo::location::%player%::1::*}% blokow]" to the player		
+				else:
+					send "&8» &cPodaj liczbe." to the player
+			else:
+				send "&8» &cPodaj blok." to the player
+		else:
+			send "&8» &4Brak uprawnien." to the player	
+command /hsphere [<itemtype>] [<integer>]:
+	description: pozwala na tworzenie pustej kuli wokolo gracza.
+	trigger:
+		if player has permission "{@perm_hsphere}":
+			if argument 1 is set:
+				if argument 2 is set:
+					set {_3/5} to 3
+					if integer > 20:
+						set {_3/5} to 5
+					if integer > 40:
+						set {_3/5} to 6
+					set {_argument 2} to argument 2
+					set {_m} to argument 2/{_3/5}
+					remove {_m}/10 from {_argument 2}
+					loop 10-1 times:
+						set {emb::undo::location::%player%::%11-loop-number%::*} to {emb::undo::location::%player%::%10-loop-number%::*} 
+						set {emb::undo::block::%player%::%11-loop-number%::*} to {emb::undo::block::%player%::%10-loop-number%::*} 
+						set {emb::undo::komenda::%player%::%11-loop-number%} to {emb::undo::komenda::%player%::%10-loop-number%}
+					clear {emb::undo::location::%player%::1::*}
+					clear {emb::undo::block::%player%::1::*}
+					set {emb::undo::komenda::%player%::1} to "/hsphere"
+					loop blocks in radius argument 2+0.5 around block at location of player:
+						if distance between location of loop-block and location of block at location of player > {_argument 2}:
+							add 1 to {_}
+							set {emb::undo::location::%player%::1::%{_}%} to location of loop-block
+							set {emb::undo::block::%player%::1::%{_}%} to type of loop-block
+							set loop-block to argument-1 
+					send "&8۠ &6Pomyslnie ustawiono [%size of {emb::undo::location::%player%::1::*}% blokow]" to the player	
+				else:
+					send "&8» &cPodaj liczbe" to the player
+			else:
+				send "&8» &cPodaj &4<itemtype>&7." to the player
+		else:
+			send "&8» &4Brak uprawnien." to the player	
+command /hcyl [<itemtype>] [<integer>] [<integer>]:
+	trigger:
+		if player has permission "{@perm_hcyl}"
+			if argument 1 is set:
+				if argument 2 is set:
+					set {_3/5} to 3
+					if argument 2 > 20:
+						set {_3/5} to 5
+					if argument 2 > 40:
+						set {_3/5} to 6
+					set {_argument 2} to argument 2
+					set {_m} to argument 2/{_3/5}
+					remove {_m}/10 from {_argument 2}
+					if argument 3 is not set:
+						loop (10-1) times:
+							set {emb::undo::location::%player%::%11-loop-number%::*} to {emb::undo::location::%player%::%10-loop-number%::*} 
+							set {emb::undo::block::%player%::%11-loop-number%::*} to {emb::undo::block::%player%::%10-loop-number%::*} 
+							set {emb::undo::komenda::%player%::%11-loop-number%} to {emb::undo::komenda::%player%::%10-loop-number%}
+						clear {emb::undo::location::%player%::1::*}
+						clear {emb::undo::block::%player%::1::*}
+						set {emb::undo::komenda::%player%::1} to "/hcyl"
+						loop blocks in radius argument 2+0.5 around block at location of player:
+							if y-coord of loop-block is y-coord of block at location of player:
+								if distance between location of loop-block and location of block at location of player > {_argument 2}:
+									add 1 to {_}
+									set {emb::undo::location::%player%::1::%{_}%} to location of loop-block
+									set {emb::undo::block::%player%::1::%{_}%} to type of loop-block
+									set loop-block to argument-1 
+						send "&8» &6Pomyslnie ustawiono [%size of {emb::undo::location::%player%::1::*}% blokow]" to the player
+					else:
+						loop (10-1) times:
+							set {emb::undo::location::%player%::%11-loop-number%::*} to {emb::undo::location::%player%::%10-loop-number%::*} 
+							set {emb::undo::block::%player%::%11-loop-number%::*} to {emb::undo::block::%player%::%10-loop-number%::*} 
+							set {emb::undo::komenda::%player%::%11-loop-number%} to {emb::undo::komenda::%player%::%10-loop-number%}
+						clear {emb::undo::location::%player%::1::*}
+						clear {emb::undo::block::%player%::1::*}
+						set {emb::undo::komenda::%player%::1} to "/hcyl"
+						loop blocks in radius argument 2+0.5 around block at location of player:
+							if y-coord of loop-block is y-coord of block at location of player:
+								if distance between location of loop-block and location of block at location of player > {_argument 2}:
+									loop argument 3 times:
+										set {_l} to location of loop-block
+										add 1 to {_}
+										remove loop-number-2+2 from y-coord of {_l}
+										set {emb::undo::location::%player%::1::%{_}%} to {_l}
+										set {emb::undo::block::%player%::1::%{_}%} to type of block at {_l}
+										set block at {_l} to argument 1
+						send "&8۠ &6Pomyslnie ustawiono [%size of {emb::undo::location::%player%::1::*}% blokow]" to the player
+				else:
+					send "&8» &cPodaj liczbe." to the player
+			else:
+				send "&8» &6<itemtype> &cnie jest ustawiony" to the player
+		else:
+			send "&8» &4Brak uprawnien." to the player
+						
+command /cyl [<itemtype>] [<integer>] [<integer>]:
+	trigger:
+		if player has permisison "{@perm_cyl}":
+			if argument 1 is set:
+				if argument 2 is set:
+					if argument 3 is not set:
+						loop 10-1 times:
+							set {emb::undo::location::%player%::%11-loop-number%::*} to {emb::undo::location::%player%::%10-loop-number%::*} 
+							set {emb::undo::block::%player%::%11-loop-number%::*} to {emb::undo::block::%player%::%10-loop-number%::*} 
+							set {emb::undo::komenda::%player%::%11-loop-number%} to {emb::undo::komenda::%player%::%10-loop-number%}
+						clear {emb::undo::location::%player%::1::*}
+						clear {emb::undo::block::%player%::1::*}
+						set {emb::undo::komenda::%player%::1} to "/cyl"
+						loop blocks in radius argument 2+0.5 around block at location of player:
+							if y-coord of loop-block is y-coord of block at location of player -1:
+								add 1 to {_}
+								set {emb::undo::location::%player%::1::%{_}%} to location of loop-block
+								set {emb::undo::block::%player%::1::%{_}%} to type of loop-block
+								set loop-block to argument-1 
+						send "&8۠ &6Pomyslnie ustawiono [%size of {emb::undo::location::%player%::1::*}% blokow]" to the player
+					else:
+						loop 10-1 times:
+							set {emb::undo::location::%player%::%11-loop-number%::*} to {emb::undo::location::%player%::%10-loop-number%::*} 
+							set {emb::undo::block::%player%::%11-loop-number%::*} to {emb::undo::block::%player%::%10-loop-number%::*} 
+							set {emb::undo::komenda::%player%::%11-loop-number%} to {emb::undo::komenda::%player%::%10-loop-number%}
+						clear {emb::undo::location::%player%::1::*}
+						clear {emb::undo::block::%player%::1::*}
+						set {emb::undo::komenda::%player%::1} to "/cyl"
+						loop blocks in radius argument 2+0.5 around block at location of player:
+							if y-coord of loop-block is y-coord of block at location of player:
+								loop argument 3 times:
+									set {_l} to location of loop-block
+									add 1 to {_}
+									remove loop-number-2+2 from y-coord of {_l}
+									set {emb::undo::location::%player%::1::%{_}%} to {_l}
+									set {emb::undo::block::%player%::1::%{_}%} to type of block at {_l}
+									set block at {_l} to argument-1 
+						send "&8۠ &6Pomyslnie ustawiono [%size of {emb::undo::location::%player%::1::*}% blokow]" to the player
+						
+command /undo:
+	description: cofa ostatnie setowane bloki
+	trigger:
+		if player has permission "{@perm_undo}":
+			if {emb::undo::location::%player%::1::*} is set:
+				set {_s} to size of {emb::undo::location::%player%::1::*}
+				loop size of {emb::undo::location::%player%::1::*} times:
+					set block at {emb::undo::location::%player%::1::%loop-number%} to {emb::undo::block::%player%::1::%loop-number%}
+				loop 10 times:
+					clear {emb::undo::block::%player%::%loop-number%::*}
+					set {emb::undo::block::%player%::%loop-number%::*} to {emb::undo::block::%player%::%loop-number +1%::*} 
+					clear {emb::undo::location::%player%::%loop-number%::*}
+					set {emb::undo::location::%player%::%loop-number%::*} to {emb::undo::location::%player%::%loop-number +1%::*} 
+					clear {emb::undo::komenda::%player%::%loop-number%}
+					set {emb::undo::komenda::%player%::%loop-number%} to {emb::undo::komenda::%player%::%loop-number +1%} 
+				send "&8۠&6Pomyslnie cofnieto [%{_s}% blokow]" to the player
+			else:
+				send "&8۠&6Nie mozna nic cofnac" to the player
+		else:
+			send "&8۠&4Brak uprawnien" to the player
+on quit:
+	loop 10 times:
+		clear {emb::undo::block::%player%::%loop-number%::*}
+		clear {emb::undo::location::%player%::%loop-number%::*}
+		clear {emb::undo::komenda::%player%::%loop-number%}
+on left click with {@item_wand}:
+	if name of player's tool is "{@name_wand}":
+		event-block isn't air:
+			set {location1::%player%} to event-block
+			send "1"
+on right click with {@item_wand}:
+	if name of player's tool is "{@name_wand}":
+		event-block isn't air:
+			set {location2::%player%} to event-block
+			send "2"
