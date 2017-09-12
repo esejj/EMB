@@ -1,4 +1,4 @@
-# It's a last version!
+# It's a latest version!
 options: # W przyszlosci plik konfiguracyjny :D
 	amount_wand: 1 # def. 1 (ilosc przedmiotu)
 	item_wand: wooden shovel # def. wooden axe (Drewniana siekiera)
